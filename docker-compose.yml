@@ -1,0 +1,60 @@
+# version: '3.8' <- 이 줄은 최신 버전에서는 불필요하므로 삭제했습니다.
+
+services:
+  frontend:
+    build:
+      # build 컨텍스트 경로를 'Coconut-Frontend'로 변경했습니다.
+      context: ./Coconut-Frontend
+      dockerfile: Dockerfile
+    container_name: coconut-frontend
+    ports:
+      - '3005:3000'
+    volumes:
+      # 볼륨 마운트 경로도 'Coconut-Frontend'로 변경했습니다.
+      - ./Coconut-Frontend:/app
+      - /app/node_modules
+    restart: always
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+
+  backend:
+    build:
+      # build 컨텍스트 경로를 'Coconut-Backend'로 변경했습니다.
+      context: ./Coconut-Backend
+      dockerfile: Dockerfile
+    container_name: coconut-backend
+    ports:
+      # 포트 설정을 더 명확하게 수정했습니다.
+      - '${PORT}:3001'
+    volumes:
+      # 볼륨 마운트 경로도 'Coconut-Backend'로 변경했습니다.
+      - ./Coconut-Backend:/app
+      - /app/node_modules
+    env_file: ./.env
+    depends_on:
+      - mysql
+      - redis
+    restart: always
+
+  mysql:
+    image: mysql:8.0
+    container_name: coconut-mysql
+    ports:
+      - '3307:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    restart: always
+    command: --default-authentication-plugin=mysql_native_password
+
+  redis:
+    image: redis:alpine
+    container_name: coconut-redis
+    ports:
+      - '6379:6379'
+    restart: always
+
+volumes:
+  mysql-data:
